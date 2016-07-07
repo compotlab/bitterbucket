@@ -17,28 +17,73 @@ type CommitsRequest struct {
 }
 
 type CommitsResponse struct {
-	PageLen int                     `json:"pagelen"`
-	Values  []CommitsResponseValues `json:"values"`
-	Next    string                  `json:"next"`
+	PageLen int             `json:"pagelen"`
+	Values  []CommitsValues `json:"values"`
+	Next    string          `json:"next"`
 }
 
-type CommitsResponseValues struct {
-	Hash       string                          `json:"hash"`
-	Repository CommitsResponseValuesRepository `json:"repository"`
-	//Links      string `json:"links"`
-	//Author     string `json:"author"`
-	//Parents    string `json:"parents"`
-	Date    string `json:"date"`
-	Message string `json:"message"`
-	Type    string `json:"type"`
+type CommitsValues struct {
+	Hash       string            `json:"hash"`
+	Repository CommitsRepository `json:"repository"`
+	Links      CommitsLinks      `json:"links"`
+	Author     CommitsAuthor     `json:"author"`
+	Parents    []CommitsParent   `json:"parents"`
+	Date       string            `json:"date"`
+	Message    string            `json:"message"`
+	Type       string            `json:"type"`
 }
 
-type CommitsResponseValuesRepository struct {
-	//Links string        `json:"links"`
-	Type     string `json:"type"`
-	Name     string `json:"name"`
-	FullName string `json:"full_name"`
-	UUID     string `json:"uuid"`
+type CommitsRepository struct {
+	Links    CommitsRepositoryLinks `json:"links"`
+	Type     string                 `json:"type"`
+	Name     string                 `json:"name"`
+	FullName string                 `json:"full_name"`
+	UUID     string                 `json:"uuid"`
+}
+
+type CommitsRepositoryLinks struct {
+	Self   map[string]string `json:"self"`
+	HTML   map[string]string `json:"html"`
+	Avatar map[string]string `json:"avatar"`
+}
+
+type CommitsLinks struct {
+	Self       map[string]string `json:"self"`
+	Components map[string]string `json:"comments"`
+	Patch      map[string]string `json:"patch"`
+	HTML       map[string]string `json:"html"`
+	Diff       map[string]string `json:"diff"`
+	Approve    map[string]string `json:"approve"`
+}
+
+type CommitsAuthor struct {
+	Raw  string      `json:"raw"`
+	User CommitsUser `json:"user"`
+}
+
+type CommitsUser struct {
+	Username    string    `json:"username"`
+	DisplayName string    `json:"display_name"`
+	Type        string    `json:"type"`
+	UUID        string    `json:"uuid"`
+	Links       UserLinks `json:"links"`
+}
+
+type UserLinks struct {
+	Self   map[string]string `json:"self"`
+	HTML   map[string]string `json:"html"`
+	Avatar map[string]string `json:"avatar"`
+}
+
+type CommitsParent struct {
+	Hash  string      `json:"hash"`
+	Type  string      `json:"type"`
+	Links ParentLinks `json:"links"`
+}
+
+type ParentLinks struct {
+	Self map[string]string `json:"self"`
+	HTML map[string]string `json:"html"`
 }
 
 func (c *Client) Commits() *Commits {
@@ -69,7 +114,7 @@ func (c *Commits) GetNextCommits(cr CommitsResponse) (CommitsResponse, error) {
 
 func (c *Commits) getCommits(u string) (CommitsResponse, error) {
 	data := CommitsResponse{}
-	_, err := c.Client.APICall(u, &data)
+	_, err := c.Client.Do("GET", u, []byte{}, &data)
 	if err != nil {
 		return CommitsResponse{}, err
 	}
